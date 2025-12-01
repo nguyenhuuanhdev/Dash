@@ -992,17 +992,18 @@
       const style = document.createElement('style');
       style.textContent = `
     #mobileControls {
-      position: fixed;
-      bottom: 100px;
-      left: 0;
-      right: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 20px;
-      z-index: 9999 !important;
-      pointer-events: none;
-    }
+  position: fixed;
+  bottom: 100px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  padding: 0 20px;
+  z-index: 9999 !important;
+  pointer-events: none;
+}
     .mobile-btn {
       background: rgba(100, 150, 255, 0.6) !important;
       border: 4px solid white !important;
@@ -1026,9 +1027,13 @@
       transform: scale(0.85);
     }
     .left-controls, .right-controls {
-      display: flex;
-      gap: 15px;
-    }
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  flex: 1; /* CHÌA KHÓA: giúp hai cụm nút chia đều không gian */
+}
+
     #btnStart {
       position: fixed;
       bottom: 20px;

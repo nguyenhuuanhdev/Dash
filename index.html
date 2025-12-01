@@ -988,12 +988,6 @@
     // Mobile Touch Controls
     // ------------------------------------------------------------
 
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isTouching = false;
-    let touchDirection = null;
-
-    // Tạo các nút điều khiển ảo
     function createMobileControls() {
       // Kiểm tra xem có phải thiết bị di động không
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1006,7 +1000,7 @@
     <style>
       #mobileControls {
         position: fixed;
-        bottom: 20px;
+        bottom: 80px;
         width: 100%;
         display: flex;
         justify-content: space-between;
@@ -1028,13 +1022,34 @@
         pointer-events: all;
         user-select: none;
         touch-action: none;
+        transition: background 0.1s;
       }
       .mobile-btn:active {
-        background: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0.95);
       }
       .left-controls, .right-controls {
         display: flex;
         gap: 15px;
+        align-items: center;
+      }
+      #btnStart {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(76, 175, 80, 0.5);
+        border: 2px solid rgba(76, 175, 80, 0.8);
+        border-radius: 10px;
+        padding: 15px 30px;
+        color: white;
+        font-family: "Press Start 2P", monospace;
+        font-size: 12px;
+        pointer-events: all;
+        z-index: 3000;
+      }
+      #btnStart:active {
+        background: rgba(76, 175, 80, 0.8);
       }
     </style>
     <div class="left-controls">
@@ -1049,92 +1064,85 @@
 
       document.body.appendChild(controlsDiv);
 
-      // Xử lý sự kiện cho các nút
+      // Thêm nút START
+      const startBtn = document.createElement('button');
+      startBtn.id = 'btnStart';
+      startBtn.textContent = 'START';
+      document.body.appendChild(startBtn);
+
+      // Xử lý sự kiện cho các nút điều khiển
       const btnLeft = document.getElementById('btnLeft');
       const btnRight = document.getElementById('btnRight');
       const btnUp = document.getElementById('btnUp');
       const btnDown = document.getElementById('btnDown');
 
-      function handleTouchStart(key) {
-        KEYS[key] = true;
+      function setupButton(button, keyCode) {
+        // Touch events
+        button.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          KEYS[keyCode] = true;
+        });
+
+        button.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          KEYS[keyCode] = false;
+        });
+
+        button.addEventListener('touchcancel', (e) => {
+          e.preventDefault();
+          KEYS[keyCode] = false;
+        });
+
+        // Mouse events (để test trên desktop)
+        button.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          KEYS[keyCode] = true;
+        });
+
+        button.addEventListener('mouseup', (e) => {
+          e.preventDefault();
+          KEYS[keyCode] = false;
+        });
+
+        button.addEventListener('mouseleave', (e) => {
+          KEYS[keyCode] = false;
+        });
       }
 
-      function handleTouchEnd(key) {
-        KEYS[key] = false;
+      setupButton(btnLeft, 'ArrowLeft');
+      setupButton(btnRight, 'ArrowRight');
+      setupButton(btnUp, 'ArrowUp');
+      setupButton(btnDown, 'ArrowDown');
+
+      // Xử lý nút START
+      startBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (!inGame) {
+          const event = new KeyboardEvent('keyup', { code: 'KeyC' });
+          window.dispatchEvent(event);
+        }
+      });
+
+      startBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!inGame) {
+          const event = new KeyboardEvent('keyup', { code: 'KeyC' });
+          window.dispatchEvent(event);
+        }
+      });
+
+      // Ẩn/hiện nút START
+      function updateStartButton() {
+        if (inGame) {
+          startBtn.style.display = 'none';
+        } else {
+          startBtn.style.display = 'block';
+        }
       }
 
-      btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowLeft'); });
-      btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowLeft'); });
-
-      btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowRight'); });
-      btnRight.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowRight'); });
-
-      btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowUp'); });
-      btnUp.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowUp'); });
-
-      btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart('ArrowDown'); });
-      btnDown.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd('ArrowDown'); });
+      // Kiểm tra trạng thái game mỗi 100ms
+      setInterval(updateStartButton, 100);
     }
-
-    // Xử lý vuốt màn hình
-    document.addEventListener('touchstart', function (e) {
-      if (e.target.classList.contains('mobile-btn')) return;
-
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      isTouching = true;
-    }, { passive: true });
-
-    document.addEventListener('touchmove', function (e) {
-      if (!isTouching || e.target.classList.contains('mobile-btn')) return;
-
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-
-      const deltaX = touchX - touchStartX;
-      const deltaY = touchY - touchStartY;
-
-      // Xác định hướng chính
-      if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Vuốt ngang
-        if (deltaX > 30) {
-          KEYS.ArrowRight = true;
-          KEYS.ArrowLeft = false;
-        } else if (deltaX < -30) {
-          KEYS.ArrowLeft = true;
-          KEYS.ArrowRight = false;
-        }
-      } else {
-        // Vuốt dọc
-        if (deltaY < -30) {
-          KEYS.ArrowUp = true;
-          KEYS.ArrowDown = false;
-        } else if (deltaY > 30) {
-          KEYS.ArrowDown = true;
-          KEYS.ArrowUp = false;
-        }
-      }
-    }, { passive: true });
-
-    document.addEventListener('touchend', function (e) {
-      if (e.target.classList.contains('mobile-btn')) return;
-
-      isTouching = false;
-      KEYS.ArrowLeft = false;
-      KEYS.ArrowRight = false;
-      KEYS.ArrowUp = false;
-      KEYS.ArrowDown = false;
-    }, { passive: true });
-
-    // Thêm nút INSERT COIN cho mobile
-    const gameDiv = document.getElementById('game');
-    gameDiv.addEventListener('touchend', function (e) {
-      if (!inGame && e.target.id === 'text') {
-        // Mô phỏng nhấn phím C
-        const event = new KeyboardEvent('keyup', { code: 'KeyC' });
-        window.dispatchEvent(event);
-      }
-    });
     //# sourceURL=pen.js
   </script>
   <script src="javascript/null.js"></script>

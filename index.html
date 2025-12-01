@@ -988,183 +988,163 @@
     // ------------------------------------------------------------
 
     function createMobileControls() {
-      // Kiểm tra xem có phải thiết bị di động không
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      // Tạo CSS
+      const style = document.createElement('style');
+      style.textContent = `
+    #mobileControls {
+      position: fixed;
+      bottom: 100px;
+      left: 0;
+      right: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 9999 !important;
+      pointer-events: none;
+    }
+    .mobile-btn {
+      background: rgba(100, 150, 255, 0.6) !important;
+      border: 4px solid white !important;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 35px;
+      font-weight: bold;
+      color: white;
+      pointer-events: all !important;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none !important;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .mobile-btn.active {
+      background: rgba(100, 255, 150, 0.8) !important;
+      transform: scale(0.85);
+    }
+    .left-controls, .right-controls {
+      display: flex;
+      gap: 15px;
+    }
+    #btnStart {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 100, 100, 0.7) !important;
+      border: 4px solid white !important;
+      border-radius: 10px;
+      padding: 18px 35px;
+      color: white;
+      font-family: "Press Start 2P", monospace;
+      font-size: 12px;
+      z-index: 9999 !important;
+      pointer-events: all !important;
+      touch-action: none !important;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    #btnStart.active {
+      background: rgba(255, 150, 150, 0.9) !important;
+      transform: translateX(-50%) scale(0.9);
+    }
+  `;
+      document.head.appendChild(style);
 
-      if (!isMobile) return;
-
+      // Tạo container
       const controlsDiv = document.createElement('div');
       controlsDiv.id = 'mobileControls';
-      controlsDiv.innerHTML = `
-    <style>
-      #mobileControls {
-        position: fixed;
-        bottom: 120px;
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        padding: 0 30px;
-        z-index: 3000;
-        pointer-events: none;
-      }
-      .mobile-btn {
-        background: rgba(100, 150, 255, 0.4);
-        border: 3px solid rgba(255, 255, 255, 0.7);
-        border-radius: 50%;
-        width: 90px;
-        height: 90px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 40px;
-        font-weight: bold;
-        color: white;
-        pointer-events: all;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-        transition: all 0.1s;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      }
-      .mobile-btn.active {
-        background: rgba(100, 255, 150, 0.7);
-        transform: scale(0.9);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-      }
-      .left-controls, .right-controls {
-        display: flex;
-        gap: 20px;
-        align-items: center;
-      }
-      #btnStart {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(76, 175, 80, 0.6);
-        border: 3px solid rgba(255, 255, 255, 0.8);
-        border-radius: 15px;
-        padding: 20px 40px;
-        color: white;
-        font-family: "Press Start 2P", monospace;
-        font-size: 14px;
-        pointer-events: all;
-        z-index: 3000;
-        user-select: none;
-        -webkit-user-select: none;
-        touch-action: manipulation;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      }
-      #btnStart.active {
-        background: rgba(76, 175, 80, 0.9);
-        transform: translateX(-50%) scale(0.95);
-      }
-    </style>
-    <div class="left-controls">
-      <div class="mobile-btn" data-key="ArrowLeft">◄</div>
-      <div class="mobile-btn" data-key="ArrowRight">►</div>
-    </div>
-    <div class="right-controls">
-      <div class="mobile-btn" data-key="ArrowUp">▲</div>
-      <div class="mobile-btn" data-key="ArrowDown">▼</div>
-    </div>
+
+      // Tạo nút trái
+      const leftControls = document.createElement('div');
+      leftControls.className = 'left-controls';
+      leftControls.innerHTML = `
+    <div class="mobile-btn" id="btnLeft">◄</div>
+    <div class="mobile-btn" id="btnRight">►</div>
   `;
 
+      // Tạo nút phải
+      const rightControls = document.createElement('div');
+      rightControls.className = 'right-controls';
+      rightControls.innerHTML = `
+    <div class="mobile-btn" id="btnUp">▲</div>
+    <div class="mobile-btn" id="btnDown">▼</div>
+  `;
+
+      controlsDiv.appendChild(leftControls);
+      controlsDiv.appendChild(rightControls);
       document.body.appendChild(controlsDiv);
 
-      // Thêm nút START
+      // Tạo nút START
       const startBtn = document.createElement('button');
       startBtn.id = 'btnStart';
-      startBtn.textContent = 'START GAME';
+      startBtn.textContent = 'START';
       document.body.appendChild(startBtn);
 
-      // Lấy tất cả các nút điều khiển
-      const mobileButtons = document.querySelectorAll('.mobile-btn');
+      // Setup sự kiện cho từng nút
+      function setupControl(id, key) {
+        const btn = document.getElementById(id);
+        if (!btn) return;
 
-      // Xử lý cho mỗi nút điều khiển
-      mobileButtons.forEach(button => {
-        const keyCode = button.getAttribute('data-key');
+        let isPressed = false;
 
-        // Khi chạm vào nút
-        button.addEventListener('touchstart', (e) => {
+        btn.addEventListener('touchstart', function (e) {
           e.preventDefault();
           e.stopPropagation();
-          KEYS[keyCode] = true;
-          button.classList.add('active');
+          isPressed = true;
+          KEYS[key] = true;
+          btn.classList.add('active');
+          console.log(key + ' pressed'); // Debug
         }, { passive: false });
 
-        // Khi nhả nút
-        button.addEventListener('touchend', (e) => {
+        btn.addEventListener('touchend', function (e) {
           e.preventDefault();
           e.stopPropagation();
-          KEYS[keyCode] = false;
-          button.classList.remove('active');
+          isPressed = false;
+          KEYS[key] = false;
+          btn.classList.remove('active');
+          console.log(key + ' released'); // Debug
         }, { passive: false });
 
-        button.addEventListener('touchcancel', (e) => {
-          e.preventDefault();
-          KEYS[keyCode] = false;
-          button.classList.remove('active');
-        }, { passive: false });
-
-        // Hỗ trợ chuột (để test)
-        button.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          KEYS[keyCode] = true;
-          button.classList.add('active');
+        btn.addEventListener('touchcancel', function (e) {
+          isPressed = false;
+          KEYS[key] = false;
+          btn.classList.remove('active');
         });
+      }
 
-        button.addEventListener('mouseup', (e) => {
-          e.preventDefault();
-          KEYS[keyCode] = false;
-          button.classList.remove('active');
-        });
+      setupControl('btnLeft', 'ArrowLeft');
+      setupControl('btnRight', 'ArrowRight');
+      setupControl('btnUp', 'ArrowUp');
+      setupControl('btnDown', 'ArrowDown');
 
-        button.addEventListener('mouseleave', () => {
-          KEYS[keyCode] = false;
-          button.classList.remove('active');
-        });
-      });
-
-      // Xử lý nút START
-      startBtn.addEventListener('touchstart', (e) => {
+      // Nút START
+      startBtn.addEventListener('touchstart', function (e) {
         e.preventDefault();
         startBtn.classList.add('active');
       }, { passive: false });
 
-      startBtn.addEventListener('touchend', (e) => {
+      startBtn.addEventListener('touchend', function (e) {
         e.preventDefault();
         e.stopPropagation();
         startBtn.classList.remove('active');
+        console.log('START clicked'); // Debug
 
-        if (!inGame) {
-          const event = new KeyboardEvent('keyup', {
-            code: 'KeyC',
-            bubbles: true
-          });
-          window.dispatchEvent(event);
-        }
+        // Bắt đầu game
+        const event = new KeyboardEvent('keyup', { code: 'KeyC' });
+        window.dispatchEvent(event);
       }, { passive: false });
 
-      startBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!inGame) {
-          const event = new KeyboardEvent('keyup', {
-            code: 'KeyC',
-            bubbles: true
-          });
-          window.dispatchEvent(event);
-        }
-      });
-
       // Ẩn/hiện nút START
-      setInterval(() => {
+      setInterval(function () {
         if (inGame) {
           startBtn.style.display = 'none';
         } else {
           startBtn.style.display = 'block';
         }
-      }, 100);
+      }, 200);
     }
     init();
 

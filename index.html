@@ -725,6 +725,9 @@
         speed = accelerate(speed, breaking, step);
         speed = speed.clamp(0, maxSpeed);
       } else if (countDown <= 0 || lines[startPos].special) {
+        
+        saveScore("Anh", scoreVal);
+        
         tacho.style.display = "none";
 
         home.style.display = "block";
@@ -1158,6 +1161,84 @@
 
 
   <script src="javascript/null.js"></script>
+
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    orderBy,
+    limit
+  } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBUlA2MDMDbLlbKgUrMdJgjfBCd89vj0hQ",
+    authDomain: "nguyenhuuanh-2006.firebaseapp.com",
+    projectId: "nguyenhuuanh-2006",
+    storageBucket: "nguyenhuuanh-2006.firebasestorage.app",
+    messagingSenderId: "110932553966",
+    appId: "1:110932553966:web:47a8ecb52dd9f5066a83ff",
+    measurementId: "G-J2Q05BQQB7"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // =========================
+  // SAVE SCORE
+  // =========================
+
+  window.saveScore = async function(playerName, scoreValue) {
+    try {
+      await addDoc(collection(db, "scores"), {
+        player: playerName,
+        score: scoreValue,
+        createdAt: new Date()
+      });
+
+      console.log("Score saved!");
+      loadLeaderboard();
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // =========================
+  // LOAD LEADERBOARD
+  // =========================
+
+  window.loadLeaderboard = async function() {
+
+    const q = query(
+      collection(db, "scores"),
+      orderBy("score", "desc"),
+      limit(10)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    highscores.length = 0;
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+
+      highscores.push(
+        `${data.player} - ${data.score}`
+      );
+    });
+
+    updateHighscore();
+  }
+
+  // Load lần đầu
+  loadLeaderboard();
+
+</script>
 </body>
 
 </html>
